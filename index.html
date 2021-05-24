@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scrapping Scan</title>
+</head>
+<style>
+    #webForm {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        margin-top: 50px
+    }
+
+    #webUrl {
+        display: block;
+    }
+
+    .loader,
+    .loader:before,
+    .loader:after {
+        border-radius: 50%;
+        width: 2.5em;
+        height: 2.5em;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+        -webkit-animation: load7 1.8s infinite ease-in-out;
+        animation: load7 1.8s infinite ease-in-out;
+    }
+
+    .loader {
+        font-size: 10px;
+        margin: 80px auto;
+        position: relative;
+        text-indent: -9999em;
+        -webkit-transform: translateZ(0);
+        -ms-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-animation-delay: -0.16s;
+        animation-delay: -0.16s;
+    }
+
+    .loader:before,
+    .loader:after {
+        content: '';
+        position: absolute;
+        top: 0;
+    }
+
+    .loader:before {
+        left: -3.5em;
+        -webkit-animation-delay: -0.32s;
+        animation-delay: -0.32s;
+    }
+
+    .loader:after {
+        left: 3.5em;
+    }
+
+    @-webkit-keyframes load7 {
+        0%,
+        80%,
+        100% {
+            box-shadow: 0 2.5em 0 -1.3em;
+        }
+        40% {
+            box-shadow: 0 2.5em 0 0;
+        }
+    }
+
+    @keyframes load7 {
+        0%,
+        80%,
+        100% {
+            box-shadow: 0 2.5em 0 -1.3em;
+        }
+        40% {
+            box-shadow: 0 2.5em 0 0;
+        }
+    }
+
+    #error {
+        color: red
+    }
+</style>
+<body>
+
+<form id="webForm" onsubmit="handleResponse(event)" method="post">
+    <label for="webUrl"> Enter Website
+        <input id="webUrl" name="website_url" type="text">
+    </label>
+    <div id="error"></div>
+    <button type="submit">Send</button>
+    <ul id="status_code"></ul>
+
+</form>
+
+<script type="text/javascript">
+    const handleResponse = (e) => {
+        e.preventDefault();
+        const div = document.createElement('div');
+        div.className = 'loader'
+        document.getElementById('webForm').append(div);
+        const message = document.getElementById("error");
+        message.textContent = ""
+        const ul = document.getElementById("status_code");
+        ul.textContent = ""
+
+
+
+        fetch("http://localhost:8000/scrap", {
+            body: JSON.stringify({website: e.target.elements.website_url.value}),
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+        }).then(response => response.json()).then(res => {
+            const loader = document.getElementsByClassName("loader")[0]
+            loader.remove()
+            const {status, data} = res;
+            if (status === 200) {
+                const urls = Object.entries(data);
+                const ul = document.getElementById("status_code");
+                urls.map(el => {
+                    const li = document.createElement("li");
+                    li.append(document.createTextNode(`status code ${el[0]} - count ${el[1]}`))
+                    ul.append(li);
+                })
+            } else {
+                const message = document.getElementById("error");
+                message.textContent = data
+            }
+
+
+        })
+    }
+</script>
+</body>
+</html>
